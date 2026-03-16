@@ -1,0 +1,46 @@
+name: 部署 AI 简报网站
+
+on:
+  push:
+    paths:
+      - 'briefs/*.md'
+      - 'website/build.js'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: 安装依赖
+        run: cd website && npm install node-fetch cheerio js-yaml rss-parser
+      
+      - name: 构建网站
+        run: cd website && node build.js
+      
+      - name: 提交构建结果
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add website/index.html
+          git commit -m "auto: 构建网站 [skip ci]" || echo "没有变更"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: 部署到 GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./website
+          publish_branch: gh-pages
