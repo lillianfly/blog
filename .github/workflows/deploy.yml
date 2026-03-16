@@ -3,30 +3,16 @@ name: 部署 AI 简报网站
 on:
   push:
     paths:
-      - 'briefs/*.md'
-      - 'website/build.js'
+      - 'website/index.html'
   workflow_dispatch:
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      
-      - name: 设置 Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      
-      - name: 安装依赖
-        run: cd website && npm install
-      
-      - name: 构建网站
-        run: cd website && node build.js
       
       - name: 部署到 GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
@@ -34,3 +20,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./website
           publish_branch: gh-pages
+          force_orphan: true
