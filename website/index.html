@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 情报简报 - 小虾</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #f5f7fa;
+      min-height: 100vh;
+    }
+    
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+    
+    /* 左侧导航 */
+    .sidebar {
+      width: 280px;
+      background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+      padding: 20px 0;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+    
+    .sidebar-header {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      margin-bottom: 20px;
+    }
+    
+    .sidebar-header h1 {
+      color: white;
+      font-size: 1.3em;
+      font-weight: 600;
+    }
+    
+    .sidebar-header p {
+      color: rgba(255,255,255,0.7);
+      font-size: 0.85em;
+      margin-top: 5px;
+    }
+    
+    .nav-tree {
+      list-style: none;
+    }
+    
+    .nav-item {
+      color: rgba(255,255,255,0.9);
+    }
+    
+    .nav-header {
+      padding: 10px 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s;
+    }
+    
+    .nav-header:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    
+    .nav-header .arrow {
+      font-size: 0.7em;
+      transition: transform 0.2s;
+    }
+    
+    .nav-header.expanded .arrow {
+      transform: rotate(90deg);
+    }
+    
+    .nav-children {
+      list-style: none;
+      display: none;
+    }
+    
+    .nav-children.expanded {
+      display: block;
+    }
+    
+    .nav-month {
+      padding: 8px 20px 8px 36px;
+      cursor: pointer;
+      color: rgba(255,255,255,0.85);
+      transition: background 0.2s;
+    }
+    
+    .nav-month:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    
+    .nav-day {
+      padding: 6px 20px 6px 52px;
+      cursor: pointer;
+      color: rgba(255,255,255,0.7);
+      font-size: 0.9em;
+      transition: all 0.2s;
+    }
+    
+    .nav-day:hover {
+      background: rgba(255,255,255,0.1);
+      color: white;
+    }
+    
+    .nav-day.active {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      font-weight: 500;
+    }
+    
+    /* 右侧内容 */
+    .main {
+      flex: 1;
+      padding: 30px 40px;
+      overflow-y: auto;
+    }
+    
+    .main-header {
+      margin-bottom: 30px;
+    }
+    
+    .main-header h2 {
+      color: #333;
+      font-size: 1.8em;
+      margin-bottom: 10px;
+    }
+    
+    .main-header p {
+      color: #666;
+    }
+    
+    /* 日期卡片网格 */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    
+    .date-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.3s;
+      border: 2px solid transparent;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .date-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(102, 126, 234, 0.25);
+      border-color: #667eea;
+    }
+    
+    .date-card .date {
+      font-size: 1.1em;
+      font-weight: 600;
+      color: #667eea;
+      margin-bottom: 10px;
+    }
+    
+    .date-card .preview {
+      color: #666;
+      font-size: 0.9em;
+      line-height: 1.6;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    .date-card .stats {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid #eee;
+      display: flex;
+      gap: 15px;
+      font-size: 0.8em;
+      color: #999;
+    }
+    
+    /* 简报内容 */
+    .brief-content {
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      max-width: 900px;
+    }
+    
+    .brief-content h1 {
+      color: #667eea;
+      font-size: 1.8em;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 3px solid #667eea;
+    }
+    
+    .brief-content h2 {
+      color: #764ba2;
+      font-size: 1.3em;
+      margin: 30px 0 15px 0;
+      padding-left: 10px;
+      border-left: 4px solid #764ba2;
+    }
+    
+    .brief-content ul {
+      list-style: none;
+    }
+    
+    .brief-content li {
+      padding: 10px 0;
+      padding-left: 20px;
+      position: relative;
+      line-height: 1.7;
+    }
+    
+    .brief-content li:before {
+      content: "•";
+      color: #667eea;
+      font-weight: bold;
+      position: absolute;
+      left: 0;
+    }
+    
+    .brief-content a {
+      color: #667eea;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    
+    .brief-content a:hover {
+      color: #764ba2;
+      text-decoration: underline;
+    }
+    
+    .brief-meta {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+      color: #999;
+      font-size: 0.9em;
+    }
+    
+    .back-btn {
+      display: inline-block;
+      margin-bottom: 20px;
+      padding: 8px 16px;
+      background: #667eea;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .back-btn:hover {
+      background: #764ba2;
+    }
+    
+    /* 空状态 */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+    }
+    
+    .empty-state .emoji {
+      font-size: 4em;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <!-- 左侧导航 -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1>🦐 AI 情报简报</h1>
+        <p>倩颖的个人 AI 知识库</p>
+      </div>
+      <ul class="nav-tree" id="navTree"></ul>
+    </aside>
+    
+    <!-- 右侧内容 -->
+    <main class="main" id="main">
+      <div class="empty-state">
+        <div class="emoji">📰</div>
+        <p>点击左侧日期查看简报</p>
+      </div>
+    </main>
+  </div>
+  
+  <script>
+    // 简报数据（由构建脚本生成）
+    const BRIEFS_DATA = {"brief-2026-03-16.md":"# AI 情报简报 - 2026/03/16\n\n## 🔥 热点聚焦\n\n- [360发布安全龙虾系列产品：以模治模构建智能体安全体系](https://www.qbitai.com/2026/03/387921.html)\n- [不仿真不VLA不遥操：它石智航重磅发布“能干活的通用具身大模型 ”AWE3.0](https://www.qbitai.com/2026/03/387860.html)\n- [千问AI眼镜AWE发布，回答聪明、办事靠谱，月底上新更多功能](https://www.leiphone.com/category/weiwu/YqrP917O42FzdN4R.html) - 3月14日，千问AI眼镜在中国家电及消费电子博览会（简称“AWE 2026”）举办国内首场产品发布会。阿里巴巴千问C端事业群AI硬件产品负责人吴建军介绍，千问A\n- [欧拉5在泰国发布，长城调整欧拉品牌定位并推进多动力产品布局](https://www.leiphone.com/category/transportation/ZGKVpKMsVwljsXUB.html) - 3月12日，长城汽车旗下欧拉品牌在泰国曼谷发布全新车型欧拉5（ORA 5）。发布会在当地商业综合体EMSphere举行，这是欧拉品牌面向海外市场推出的一款新车型\n- [奇安信发布龙虾安全伴侣，应对 openclaw“养虾潮”新风险](https://www.leiphone.com/category/industrynews/db2Bf5DrsyKrwFYm.html) - 3月16日，奇安信在北京召开“龙虾安全产品发布会”，围绕AI智能体 OpenClaw（业内称“龙虾”）快速发展带来的安全挑战，发布国内首份《OpenClaw生态\n\n## 📚 技术前沿\n\n- [一手实测首个龙虾模型：长路径任务不失误，一人包揽全栈开发](https://www.qbitai.com/2026/03/388352.html) - 还有龙虾专属套餐\n- [天下苦「调参」久矣！MIT师生推出全新RandOpt算法](https://www.qbitai.com/2026/03/388054.html) - 预训练模型周围早就藏好了大量专家\n- [1.4亿宝可梦玩家，都在给AI免费打工…](https://www.qbitai.com/2026/03/387958.html) - 累计贡献300亿高精图像数据集，已训练成机器人厘米级导航算法\n- [360发布安全龙虾系列产品：以模治模构建智能体安全体系](https://www.qbitai.com/2026/03/387921.html)\n- [AI 数学推理新纪元：SAIR Foundation 正式启动“数学蒸馏挑战赛”](https://www.qbitai.com/2026/03/387915.html)\n- [不仿真不VLA不遥操：它石智航重磅发布“能干活的通用具身大模型 ”AWE3.0](https://www.qbitai.com/2026/03/387860.html)\n- [MIT Researchers Unveil “SEAL”: A New Step Towards Self-Improving AI](https://syncedreview.com/2025/06/16/mit-researchers-unveil-seal-a-new-step-towards-self-improving-ai/) - MIT introduces SEAL, a framework enabling large language models to self-edit and\n- [Can GRPO be 10x Efficient? Kwai AI’s SRPO Suggests Yes with SRPO](https://syncedreview.com/2025/04/23/can-grpo-be-10x-efficient-kwai-ais-srpo-suggests-yes-with-srpo/) - Kwai AI's SRPO framework slashes LLM RL post-training steps by 90% while matchin\n\n## 🏢 行业动态\n\n- [科技CEO用ChatGPT+基因数据定制癌症疫苗！肿瘤缩小50%](https://www.qbitai.com/2026/03/387935.html) - AI救了我的狗！从奄奄一息到满公园追兔子\n- [“为了让工程师用 AI，公司会裁掉一半人！”硅谷顶级大佬直言，AI 一天 3 小时搞定工作，还搞 996 的公司必垮](https://www.infoq.cn/article/JSj5hNXIOBmDXD1jpZDa?utm_source=rss&utm_medium=article) - 点击查看原文>\n- [OpenClaw 之父惊叹中国速度！大厂集体杀入新战场：用AI 批量制造“一人公司”](https://www.infoq.cn/article/9qY0o9CYOdkQAz6k6YCG?utm_source=rss&utm_medium=article) - 点击查看原文>\n\n## 💡 深度思考\n\n- 今日 AI 领域关注焦点：360发布安全龙虾系列产品：以模治模构建智能体安全体系\n- 技术趋势：大模型、具身智能、多 Agent 系统持续热门\n- 资本动向：1 起融资事件\n"};
+    
+    // 构建树形结构
+    function buildTree() {
+      const tree = {};
+      
+      for (const [file, content] of Object.entries(BRIEFS_DATA)) {
+        const dateMatch = file.match(/brief-(\d{4})-(\d{2})-(\d{2})\.md/);
+        if (!dateMatch) continue;
+        
+        const [, year, month, day] = dateMatch;
+        
+        if (!tree[year]) tree[year] = {};
+        if (!tree[year][month]) tree[year][month] = {};
+        tree[year][month][day] = { file, content };
+      }
+      
+      return tree;
+    }
+    
+    // 渲染导航树
+    function renderNavTree() {
+      const tree = buildTree();
+      const navTree = document.getElementById('navTree');
+      
+      for (const [year, months] of Object.entries(tree).sort((a, b) => b[0] - a[0])) {
+        const yearItem = document.createElement('li');
+        yearItem.className = 'nav-item';
+        yearItem.innerHTML = `
+          <div class="nav-header" onclick="toggleYear(this)">
+            <span class="arrow">▶</span>
+            <span>${year}年</span>
+          </div>
+          <ul class="nav-children" id="year-${year}"></ul>
+        `;
+        navTree.appendChild(yearItem);
+        
+        const monthList = yearItem.querySelector('.nav-children');
+        for (const [month, days] of Object.entries(months).sort((a, b) => b[0] - a[0])) {
+          const monthItem = document.createElement('li');
+          monthItem.innerHTML = `
+            <div class="nav-month" onclick="toggleMonth(this)">
+              ${month}月
+            </div>
+            <ul class="nav-children" id="month-${year}-${month}"></ul>
+          `;
+          monthList.appendChild(monthItem);
+          
+          const dayList = monthItem.querySelector('.nav-children');
+          for (const day of Object.keys(days).sort((a, b) => b[0] - a[0])) {
+            const dayItem = document.createElement('li');
+            dayItem.className = 'nav-day';
+            dayItem.textContent = `${day}日`;
+            dayItem.onclick = () => selectDate(year, month, day, dayItem);
+            dayList.appendChild(dayItem);
+          }
+        }
+      }
+    }
+    
+    function toggleYear(header) {
+      header.classList.toggle('expanded');
+      const children = header.nextElementSibling;
+      children.classList.toggle('expanded');
+    }
+    
+    function toggleMonth(monthEl) {
+      const children = monthEl.nextElementSibling;
+      children.classList.toggle('expanded');
+    }
+    
+    function selectDate(year, month, day, el) {
+      // 更新激活状态
+      document.querySelectorAll('.nav-day').forEach(d => d.classList.remove('active'));
+      el.classList.add('active');
+      
+      // 加载简报
+      const tree = buildTree();
+      const brief = tree[year][month][day];
+      renderBrief(brief.content, `${year}-${month}-${day}`);
+    }
+    
+    // 解析 Markdown
+    function parseMarkdown(md) {
+      let html = md;
+      html = html.replace(/^# (.*$)/gm, '<h1>$1</h1>');
+      html = html.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+      html = html.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+      html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+      html = html.replace(/^- (.*$)/gm, '<li>$1</li>');
+      html = html.replace(/\n/g, '<br>');
+      return html;
+    }
+    
+    // 渲染简报内容
+    function renderBrief(content, date) {
+      const main = document.getElementById('main');
+      const html = parseMarkdown(content);
+      
+      // 提取前几行作为预览
+      const lines = content.split('\n').filter(l => l.startsWith('- ')).slice(0, 3);
+      const preview = lines.map(l => l.replace(/^- /, '')).join('<br>');
+      
+      main.innerHTML = `
+        <div class="brief-content">
+          ${html}
+          <div class="brief-meta">
+            🦐 由 AI Intelligence Brief 自动生成 | 日期：${date}
+          </div>
+        </div>
+      `;
+    }
+    
+    // 渲染日期卡片网格
+    function renderCardsGrid() {
+      const tree = buildTree();
+      const main = document.getElementById('main');
+      
+      let cardsHtml = '';
+      for (const [year, months] of Object.entries(tree).sort((a, b) => b[0] - a[0])) {
+        for (const [month, days] of Object.entries(months).sort((a, b) => b[0] - a[0])) {
+          for (const [day, { content }] of Object.entries(days).sort((a, b) => b[0] - a[0])) {
+            const date = `${year}-${month}-${day}`;
+            const lines = content.split('\n').filter(l => l.startsWith('- ')).slice(0, 3);
+            const preview = lines.map(l => l.replace(/^- /, '').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')).join('... ');
+            
+            cardsHtml += `
+              <div class="date-card" onclick="loadBrief('${year}', '${month}', '${day}')">
+                <div class="date">${year}/${month}/${day}</div>
+                <div class="preview">${preview || '暂无内容'}</div>
+                <div class="stats">
+                  <span>📰 AI 简报</span>
+                </div>
+              </div>
+            `;
+          }
+        }
+      }
+      
+      main.innerHTML = `
+        <div class="main-header">
+          <h2>所有简报</h2>
+          <p>点击卡片查看详情</p>
+        </div>
+        <div class="cards-grid">${cardsHtml}</div>
+      `;
+    }
+    
+    function loadBrief(year, month, day) {
+      const tree = buildTree();
+      const brief = tree[year][month][day];
+      renderBrief(brief.content, `${year}-${month}-${day}`);
+    }
+    
+    // 初始化
+    renderNavTree();
+    renderCardsGrid();
+  </script>
+</body>
+</html>
