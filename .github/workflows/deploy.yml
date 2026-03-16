@@ -23,20 +23,10 @@ jobs:
           node-version: '20'
       
       - name: 安装依赖
-        run: cd website && npm install node-fetch cheerio js-yaml rss-parser
+        run: cd website && npm install
       
       - name: 构建网站
         run: cd website && node build.js
-      
-      - name: 提交构建结果
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add website/index.html
-          git commit -m "auto: 构建网站 [skip ci]" || echo "没有变更"
-          git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: 部署到 GitHub Pages
         uses: peaceiris/actions-gh-pages@v4

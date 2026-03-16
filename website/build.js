@@ -10,7 +10,7 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const BRIEFS_DIR = join(__dirname, '..');
+const BRIEFS_DIR = join(__dirname, '..', 'briefs');
 
 function scanBriefs() {
   const files = readdirSync(BRIEFS_DIR);
