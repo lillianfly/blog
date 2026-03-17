@@ -2,8 +2,10 @@ name: 部署 AI 简报网站
 
 on:
   push:
+    branches: [main]
     paths:
       - 'website/index.html'
+      - 'briefs/*.md'
   workflow_dispatch:
 
 permissions:
@@ -13,11 +15,11 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
-      
+
       - name: 部署到 GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
