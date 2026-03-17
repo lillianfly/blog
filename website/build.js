@@ -37,7 +37,14 @@ function build() {
   console.error('🔧 生成数据...');
   const briefsJson = JSON.stringify(briefs);
   
-  const html = template.replace('__BRIEFS_DATA__', briefsJson);
+  // 使用正则替换已有的 BRIEFS_DATA（支持模板占位符和已有数据两种情况）
+  const html = template.replace(
+    /const BRIEFS_DATA\s*=\s*__BRIEFS_DATA__;/,
+    `const BRIEFS_DATA = ${briefsJson};`
+  ).replace(
+    /const BRIEFS_DATA\s*=\s*\{[^}]*\};/s,
+    `const BRIEFS_DATA = ${briefsJson};`
+  );
   
   const outputFile = join(__dirname, 'index.html');
   writeFileSync(outputFile, html);
