@@ -1,0 +1,11 @@
+{
+  "name": "ai-brief-website",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "node-fetch": "^3.3.2",
+    "cheerio": "^1.2.0",
+    "js-yaml": "^4.1.0",
+    "rss-parser": "^3.13.0"
+  }
+}
